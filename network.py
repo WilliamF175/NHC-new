@@ -1,4 +1,4 @@
-#!/usr/bin/python4
+#!/usr/bin/python3
 
 from gprofiler import GProfiler
 from collections import Counter
