@@ -1,7 +1,7 @@
 import pyarrow.parquet as pq
 import pandas as pd
 import numpy as np
-import os
+import os, gc
 
 def merge_parquets(folder, output_name):
     all_files = os.listdir(os.path.expanduser(folder))
