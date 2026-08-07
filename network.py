@@ -24,16 +24,16 @@ def convertGeneID(location, edge_cutoff):
                         print(f'{name}\t', end = '')
                 print(line[-1])
     return list(translations.values())
-                
+
 #generates connectivity file
 def connectivity(network_file):
     with open(network_file, encoding="utf-8") as data:
         list_genes = data.read().split()
         del(list_genes[2::3])
     freq = dict(Counter(list_genes))
-    
+
     filename = 'Data_NHC_Network_Connectivity.txt'
-    
+
     genes = list(freq.keys())
     with open(filename, 'w') as conn_file:
         for gene in genes:
