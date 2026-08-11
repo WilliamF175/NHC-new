@@ -1,25 +1,32 @@
 import pyarrow.parquet as pq
-import pandas as pd
-import numpy as np
-import os, gc
+from gprofiler import GProfiler
+import os
 
-def merge_parquets(folder, output_name):
+gp = GProfiler(return_dataframe = False)
+
+def parquet_listing(folder):
     all_files = os.listdir(os.path.expanduser(folder))
     parquets = []
     for file in all_files:
         if file.find('.snappy.parquet') != -1:
             parquets.append(f'{folder}{file}')
-            
-    schema = pq.ParquetFile(parquets[0]).schema_arrow
-    with pq.ParquetWriter(os.path.expanduser(output_name), schema=schema) as writer:
-        for file in parquets:
-            writer.write_table(pq.read_table(os.path.expanduser(file), schema=schema))
     print('done successfully')
+    return parquets
 
-def parquet_to_tsv(filename, output_name):
-    table = pq.read_table(os.path.expanduser(filename)).to_pandas()
+
+def schema_list(filename):
+    schema = str(pq.ParquetFile(filename).schema_arrow).split('\n')
+    
+    column = 0
+    while column < len(schema):
+        schema[column] = schema[column][:schema[column].find(':')]
+        column += 1
+    return schema[:-3]
+
+def parquet_to_tsv(filename, output_name, columns):
+    table = pq.read_table(os.path.expanduser(filename), columns=columns).to_pandas()
     keys = list(table.keys())
-    with open(os.path.expanduser(output_name), 'x', encoding = 'utf-8') as file:
+    with open(os.path.expanduser(output_name), 'w', encoding = 'utf-8') as file:
         index = 0
         while index < len(table):
             for key in keys:
@@ -29,3 +36,17 @@ def parquet_to_tsv(filename, output_name):
             index += 1
     del(table)
     print('nothing blew up')
+    
+def folder_to_tsv(folder, output_path):
+    parquets = parquet_listing(folder)
+    schema = schema_list(parquets[0])
+
+    columns = []
+    for column in schema:
+        choice = input(f'keep column {column}?\ny or n\n')
+        if choice == 'y':
+            columns.append(column)
+    print(columns)
+    
+    for parquet in parquets:
+        parquet_to_tsv(parquet, output_path, columns)
