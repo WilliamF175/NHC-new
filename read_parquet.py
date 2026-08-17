@@ -1,6 +1,6 @@
 import pyarrow.parquet as pq
 from gprofiler import GProfiler
-import os
+import os, sys
 
 gp = GProfiler(return_dataframe = False)
 
@@ -16,7 +16,7 @@ def parquet_listing(folder):
 
 def schema_list(filename):
     schema = str(pq.ParquetFile(filename).schema_arrow).split('\n')
-    
+
     column = 0
     while column < len(schema):
         schema[column] = schema[column][:schema[column].find(':')]
@@ -26,7 +26,7 @@ def schema_list(filename):
 def parquet_to_tsv(filename, output_name, columns):
     table = pq.read_table(os.path.expanduser(filename), columns=columns).to_pandas()
     keys = list(table.keys())
-    with open(os.path.expanduser(output_name), 'w', encoding = 'utf-8') as file:
+    with open(os.path.expanduser(output_name), 'a', encoding = 'utf-8') as file:
         index = 0
         while index < len(table):
             for key in keys:
@@ -36,7 +36,7 @@ def parquet_to_tsv(filename, output_name, columns):
             index += 1
     del(table)
     print('nothing blew up')
-    
+
 def folder_to_tsv(folder, output_path):
     parquets = parquet_listing(folder)
     schema = schema_list(parquets[0])
@@ -47,6 +47,9 @@ def folder_to_tsv(folder, output_path):
         if choice == 'y':
             columns.append(column)
     print(columns)
-    
+
     for parquet in parquets:
         parquet_to_tsv(parquet, output_path, columns)
+
+if __name__ == "__main__":
+    folder_to_tsv(sys.argv[1], sys.argv[2])
